@@ -1,0 +1,69 @@
+version: "3.8"
+
+services:
+  n8n:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5678:5678"
+    environment:
+      # ---- Trust your corporate MITM/root CA ----
+      - NODE_OPTIONS=--use-openssl-ca
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/corp-root.pem
+      - NODE_FUNCTION_ALLOW_EXTERNAL="true"  
+      - N8N_SKIP_CREDENTIAL_TEST=true
+
+      # ---- n8n base settings ----
+      - TZ=Asia/Singapore
+      - N8N_PORT=5678
+
+      # >>> FIXED: Correct host settings for Cloudflare Warp tunnel <<<
+      - N8N_PROTOCOL=https
+      - N8N_HOST=0.0.0.0
+      - N8N_EDITOR_BASE_URL=https://returning-perhaps-regular-broad.trycloudflare.com
+      - WEBHOOK_URL=https://returning-perhaps-regular-broad.trycloudflare.com
+      # Pandoc service URL (for n8n to use)
+      - PANDOC_URL=http://pandoc-service:3000
+
+      # Keep this stable forever
+      - N8N_ENCRYPTION_KEY=3aYILRn9CdFZaEjrCOc0e38bgu2TpQ/O
+
+      # Enable community packages
+      - N8N_COMMUNITY_PACKAGES_ENABLED=true
+      - N8N_COMMUNITY_PACKAGES_FILE=/home/node/.n8n/community-packages.json
+      
+      # Fix permissions warning
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+
+      # ---- Fix deprecation warnings ----
+      - DB_SQLITE_POOL_SIZE=5
+      - N8N_RUNNERS_ENABLED=true  # Remove quotes
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_GIT_NODE_DISABLE_BARE_REPOS=true
+
+    volumes:
+      # Use relative path instead of absolute Windows path
+      - ./certs/corp-root.pem:/etc/ssl/certs/corp-root.pem:ro
+      - n8n_data:/home/node/.n8n
+      # Windows Desktop access (READ WRITE)
+      - C:/Users/matthewng/Desktop:/desktop:rw
+    depends_on:
+      - pandoc-service
+    networks:
+      - n8n-network
+
+  pandoc-service:
+    build: ./pandoc-service  # We'll create this directory
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - n8n-network
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n-network:
+    driver: bridge

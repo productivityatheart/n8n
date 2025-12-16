@@ -1,0 +1,54 @@
+
+{
+  "name": "TXT to DOCX via Custom Pandoc API",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "text", "value": "Hello from n8n!\nThis is a sample text file." }
+          ]
+        }
+      },
+      "id": "Set_Text",
+      "name": "Set Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [260, 280]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "requestMethod": "POST",
+        "url": "http://pandoc-service-1:3000/convert?from=plain&to=docx",
+        "responseFormat": "file",
+        "jsonParameters": false,
+        "options": { "resolveBinary": true },
+        "sendBinaryData": false,
+        "headers": { "Content-Type": "text/plain" },
+        "body": "={{$json.text}}"
+      },
+      "id": "HTTP_Pandoc",
+      "name": "HTTP → Pandoc (txt→docx)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [520, 280]
+    },
+    {
+      "parameters": {
+        "fileName": "output.docx",
+        "binaryData": true,
+        "dataPropertyName": "data"
+      },
+      "id": "Write_File",
+      "name": "Write DOCX",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [780, 280]
+    }
+  ],
+  "connections": {
+    "Set Text": { "main": [ [{ "node": "HTTP → Pandoc (txt→docx)", "type": "main", "index": 0 }] ] },
+    "HTTP → Pandoc (txt→docx)": { "main": [ [{ "node": "Write DOCX", "type": "main", "index": 0 }] ] }
+  }
+}
