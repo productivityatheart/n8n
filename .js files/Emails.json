@@ -1,0 +1,933 @@
+{
+  "name": "Emails",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=From {{ $json.textPlain }} , give me a clean JSON extraction based ONLY on the variables listed below and also create a UID based on the steps given (Created by you it should be {{ $json.date }} in ddmmyyyy format and add a number behind starting from 1 , check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolutions to digitalize the process",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nRead up on the details of the workflow then give any solution you can think of to digitalize the workflow"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        976,
+        -32
+      ],
+      "id": "e4bd2f5d-98f9-428d-97de-4f6752902450",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        976,
+        224
+      ],
+      "id": "1e34d6c4-91af-4d5c-8271-87988fad31d5",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=Using  {{ $json.textPlain }} , change it into a structured format to be placed into excel sheet with column headers :  Name  Department App to be used  Usual time taken Detailed example of workflow UID Solutions to digitalize the process\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        224
+      ],
+      "id": "d825ef4f-34a3-4a52-b78d-fce3f59b0ec4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "=Instructions:\n--------------\n{{ $json.textPlain }} ,  give me a clean JSON extraction based ONLY on the variables listed below and create an UID based on {{ $json.date }} in ddmmyyyy format and add a number behind starting from 1 , check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolution to digitalize the process\n--------------\nCompletion:\n***AFTER check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n\nthe UID exist in the excel but AI did not increase by 1 for current UID\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\n--------------\n{error}\n--------------\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions: give me a clean JSON extraction based ONLY on the variables listed below and create an UID based on {{ $json.date }} and check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1*** . \n\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolution to digitalize the process"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        160
+      ],
+      "id": "60737123-03ac-4109-b98a-6d18f0c5c450",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"UID\": \"111220251\",\n  \"Name\": \"John Tan Wei Ming\",\n  \"Department\": \"Human Resource (HR)\",\n  \"Request Type\": \"Daily Report ,Automation\",\n  \"Usual Time Taken\": \"45 minutes daily\",\n  \"Source Data\": \"HRIQ portal attendance data, Excel attachments\",\n\"Deliverables\": \"Formatted Excel report with summary metrics, emailed to managers\",\n  \"Details of workflow\": \"Automated Daily Attendance Summary Processing\\nManual Process:\\n1. HR downloads raw attendance data from the HRIQ portal.\\n2. Opens Excel and cleans data (remove duplicates, format dates, update missing fields).\\n3. Computes workers present, workers on leave, forgot to clock out, regular hours and OT hours.\\n4. Cross-checks against Masterlist.\\n5. Formats final report with summary totals.\\n6. Emails file to Operations Manager and Supervisors.\\n\\nAutomated Process (n8n):\\n1. Trigger daily at 6:00 AM.\\n2. IMAP node checks mailbox for new “Attendance Report”.\\n3. Download and parse Excel into JSON.\\n4. Clean data (normalize dates, fix time formats, remove duplicates).\\n5. Apply logic (forgot to clock out, working flag, leave status, total hours + OT).\\n6. Generate output (Masterdata sheet, pivot summary, formulas, formatting).\\n7. Upload to Google Drive.\\n8. Email final report to HR & Operations.\\n\\nOutcome: Manual time 45 minutes → automated 10 seconds, reduced errors, consistent formatting.\",\n  \"Solution to digitalize the process\":\"Using AI tools to help download the file from HRIQ, format the report using python's pandas library and also create the pivot table from the report itself. Use SMTP to automatically send out the email after the report is created successfully\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        304
+      ],
+      "id": "26fe1480-d4bd-4406-bb09-fc92be9a3520",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-robotics-er-1.5-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        400
+      ],
+      "id": "cd40c61c-a365-44d2-8a93-5840389580e3",
+      "name": "Google Gemini Chat Model1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.textPlain }}",
+                    "rightValue": "Workflow Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "749806e0-1e47-499f-917f-0179a879b431"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca902c08-67a9-4334-8638-4d153a4da54b",
+                    "leftValue": "={{ $json.subject }}",
+                    "rightValue": "Daily OT Report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ccd71d78-8267-45af-af9a-c42c5ac327fa",
+                    "leftValue": "={{ $json.subject }}",
+                    "rightValue": "Workflow Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        720,
+        384
+      ],
+      "id": "ae66eee6-5c4b-4be5-aaa4-51a41a9f8507",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "data recording tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{DE994E32-8CB4-4EF4-9615-C8EAC88C01A6}",
+          "mode": "list",
+          "cachedResultName": "HRIQreport Tracker",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=HRIQreport%20Tracker!A1"
+        },
+        "dataMode": "autoMap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1824,
+        512
+      ],
+      "id": "746a1dc2-47e7-494f-a413-0867b428a16b",
+      "name": "Append data to sheet1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "56be3a34-132d-480b-a079-627c69f72cae",
+              "name": "Date",
+              "value": "={{ $('IMAP Email Trigger1').item.json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "62b006dd-3a85-401f-9180-6c197e22e069",
+              "name": "Staff/Worker",
+              "value": "=Staff",
+              "type": "string"
+            },
+            {
+              "id": "ad67fb40-52ba-4bfb-af20-19e836d0869f",
+              "name": "Successful",
+              "value": "Yes",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1600,
+        512
+      ],
+      "id": "eff77e74-5ef5-4033-8793-51cf674e1392",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('IMAP Email Trigger1').item.json.subject }}",
+                    "rightValue": "Staff Daily OT Report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "5598d867-4f9d-45bc-8492-3acdbc14d35c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Staff"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a26b3f84-e7e4-41c3-b7b1-5ce1371e74fa",
+                    "leftValue": "={{ $('IMAP Email Trigger1').item.json.subject }}",
+                    "rightValue": "Sign off the Daily OT Report - Supervisor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Worker"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1120,
+        592
+      ],
+      "id": "09215f18-bcaf-41b7-b6fe-b6a6f74e2d78",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "56be3a34-132d-480b-a079-627c69f72cae",
+              "name": "Date",
+              "value": "={{ $('IMAP Email Trigger1').item.json.date }}",
+              "type": "string"
+            },
+            {
+              "id": "62b006dd-3a85-401f-9180-6c197e22e069",
+              "name": "Staff/Worker",
+              "value": "=Worker",
+              "type": "string"
+            },
+            {
+              "id": "0202e877-7277-43f6-ba79-1e3fefa2fa3b",
+              "name": "Successful",
+              "value": "Yes",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1824,
+        704
+      ],
+      "id": "e2d537b5-20af-4de9-acbd-0f6d4c4f7d52",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "data recording tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{DE994E32-8CB4-4EF4-9615-C8EAC88C01A6}",
+          "mode": "list",
+          "cachedResultName": "HRIQreport Tracker",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=HRIQreport%20Tracker!A1"
+        },
+        "dataMode": "autoMap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        2048,
+        704
+      ],
+      "id": "7a398316-8aff-41e8-87ca-8c90e9f40267",
+      "name": "Append data to sheet2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d61639cd-d510-47fb-8a18-6d4e51787c4f",
+              "leftValue": "={{ $('IMAP Email Trigger1').item.json.from }}",
+              "rightValue": "Cindy.mai@tiongseng.com.sg",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        704
+      ],
+      "id": "40c4b5ad-098e-48d9-ba71-54f0707d3601",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4c82fd48-5477-4909-8d3b-f28361e949b0",
+              "name": "Name",
+              "value": "={{ $json.output.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "1b9cdcfe-8233-4e9e-a935-7b4b25e0ef03",
+              "name": "Department",
+              "value": "={{ $json.output.Department }}",
+              "type": "string"
+            },
+            {
+              "id": "8f85f4e9-dbf8-4321-b54b-b8e69e5f8848",
+              "name": "Request type",
+              "value": "={{ $json.output['Request Type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "f720c2f1-2f7e-4256-9f53-b3f6592a972b",
+              "name": "Usual time taken",
+              "value": "={{ $json.output['Usual Time Taken'] }}",
+              "type": "string"
+            },
+            {
+              "id": "b2e45bd8-6c0d-400e-a886-452dfd5722eb",
+              "name": "Details of the workflow",
+              "value": "={{ $json.output['Details of workflow'] }}",
+              "type": "string"
+            },
+            {
+              "id": "ab3e6aa1-967c-4ba7-af22-1c9bc3aa1870",
+              "name": "UID",
+              "value": "={{ $json.output.UID }}",
+              "type": "string"
+            },
+            {
+              "id": "df27c513-e2a9-4f2f-9116-d0adc7e5a051",
+              "name": "Source Data",
+              "value": "={{ $json.output['Source Data'] }}",
+              "type": "string"
+            },
+            {
+              "id": "d89f25a4-d460-41ce-b0da-605cc4cb171c",
+              "name": "Deliverables",
+              "value": "={{ $json.output.Deliverables }}",
+              "type": "string"
+            },
+            {
+              "id": "8b0b57c2-34d2-4e3d-a210-80b231783e79",
+              "name": "Solution to digitalize the process",
+              "value": "={{ $json.output['Solution to digitalize the process'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1504,
+        32
+      ],
+      "id": "ebf71105-3197-49af-b0da-8127bf3ff0a7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "readRows",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "data recording tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Requests",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Requests!A1"
+        },
+        "useRange": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Select_a_Range', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcelTool",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        352
+      ],
+      "id": "fc00c02b-9c1c-48d3-9db8-6306533dd0db",
+      "name": "Excelsheets"
+    },
+    {
+      "parameters": {
+        "content": "Request forms coming in \n\nWill be sent to record down in excel"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -48
+      ],
+      "id": "3c00f62c-e6dc-4175-878d-07dc311af647",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Emails sent over by HR for attendance will be recorded into excel on issues and if its successful afterwards"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        528,
+        592
+      ],
+      "id": "921c7a3e-4f84-4bae-b58c-4b2b7666066f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        448
+      ],
+      "id": "e93e1f5d-433e-4693-9d35-6449a5710856",
+      "name": "Google Gemini Chat Model2"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "Data tracker & tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Requests",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Requests!A1"
+        },
+        "dataMode": "autoMap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        32
+      ],
+      "id": "3bdc7591-61d1-481a-96e4-284b6220655b",
+      "name": "Append data to sheet"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b3c0f0e8-970b-4163-979a-b061a5d35040",
+              "leftValue": "={{ $json.from }}",
+              "rightValue": "Cindy.mai@tiongseng.com.sg",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "67db0adc-1d1d-4f09-ad02-6c531bbaf0cd",
+              "leftValue": "={{ $json.from }}",
+              "rightValue": "Ferene.lee@tiongseng.com.sg",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        608
+      ],
+      "id": "ce1af903-61e4-47de-9549-3c5905552ebf",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        560
+      ],
+      "id": "9f2e238d-12d0-4a06-a014-698bfdfc8655",
+      "name": "MoveEmail email"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-imap.imap",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        800
+      ],
+      "id": "d0b09f89-b7d1-4650-9914-3273f10e41e8",
+      "name": "MoveEmail email1"
+    },
+    {
+      "parameters": {
+        "mailbox": "Inbox",
+        "format": "raw",
+        "options": {
+          "forceReconnect": 1,
+          "trackLastMessageId": true
+        }
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        400
+      ],
+      "id": "bc8f0255-2b53-4fc6-812b-5f850023a87c",
+      "name": "Email Trigger (IMAP)",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "matthewnml97@gmail.com",
+        "toEmail": "matthew.ng@tiongseng.com.sg",
+        "subject": "test",
+        "html": "test",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2160,
+        288
+      ],
+      "id": "707c2191-6cb9-4961-a25c-372ddf791669",
+      "name": "Send email",
+      "webhookId": "fa92babd-2c78-4c4a-a1c0-c8523f80b5ab"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        224
+      ],
+      "id": "a30cf6f7-23a0-4a33-8a6e-03bef44eb222",
+      "name": "Telegram Trigger",
+      "webhookId": "2b468aac-38f9-44af-b8a0-10d28fa738f1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excelsheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append data to sheet1": {
+      "main": [
+        [
+          {
+            "node": "MoveEmail email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append data to sheet2": {
+      "main": [
+        [
+          {
+            "node": "MoveEmail email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MoveEmail email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b8596c1c-235e-43e2-b6e6-6252a11b33e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "af58cca4c64342ac5c37670b8200f5d680caf8da4bcb2d038947bc031061efed"
+  },
+  "id": "DjTRCE8a4doijyeq",
+  "tags": []
+}

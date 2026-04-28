@@ -1,0 +1,1742 @@
+{
+  "name": "Telegram (Updated)",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "transcriptText",
+        "options": {
+          "fileName": "=={{ ($json.fileName || 'audio.wav').replace(/\\.[^.]+$/, '') + '_transcript.txt' }}\n"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        -272
+      ],
+      "id": "8154709c-923e-431a-85f2-c6e51cc85aaf",
+      "name": "Convert to Text File"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.content.parts[0].text }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -64
+      ],
+      "id": "04433900-6d26-4fcd-a487-5ee2eddf5969",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=from  {{ $json.content.parts[0].text }} ,first make a \"Table of actions\", then produce Concise KEY POINTS and then meeting minutes below. take into considerations of comments from management as well. All the output will be converted into word.docx before sending out to the user, please change to html format",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -272
+      ],
+      "id": "24cd3f12-e8e6-468e-a1b9-735438e58185",
+      "name": "Meeting minutes",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "binaryPropertyName": "=data",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -272
+      ],
+      "id": "e58be085-1c68-4211-b644-82e8bda4b35c",
+      "name": "Transcribe a recording",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -80
+      ],
+      "id": "aeb3cea0-8744-4df0-8527-5391ad164f54",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Model', ``, 'string') }}",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "first make a \"Table of actions\", then produce Concise KEY POINTS and then meeting minutes below. take into considerations of comments from management as well. All the output will be converted into word.docx before sending out to the user, please change to html format"
+            }
+          ]
+        },
+        "simplify": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify_Output', ``, 'boolean') }}",
+        "jsonOutput": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Output_Content_as_JSON', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGeminiTool",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -80
+      ],
+      "id": "fedee2fe-deb6-4100-aa4a-249948cca8d1",
+      "name": "Message a model in Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {
+          "download": false
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1200,
+        16
+      ],
+      "id": "c1f1a3df-e00e-4bae-bee7-3763c61da3a8",
+      "name": "Telegram Trigger",
+      "webhookId": "5b6fe1f4-f679-4f67-a3c4-5383dedc3bac",
+      "credentials": {
+        "telegramApi": {
+          "id": "C7XaJxzmd9HPrvAM",
+          "name": "TSCtelebot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {
+          "fileName": "={{ $('Telegram Trigger').item.json.message.chat.username }}.docx"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        -288
+      ],
+      "id": "e718d512-0d03-4f5a-a2cc-ff1f99b42ed1",
+      "name": "Send a document",
+      "webhookId": "f37a67b6-d218-4d13-9f4d-614174c2300a",
+      "credentials": {
+        "telegramApi": {
+          "id": "C7XaJxzmd9HPrvAM",
+          "name": "TSCtelebot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromFormat": "html",
+        "toFormat": "docx"
+      },
+      "type": "@couleetech/n8n-nodes-pandoc.pandocConvert",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -272
+      ],
+      "id": "1c225f9b-35f1-45b9-b505-e338998d8d76",
+      "name": "Pandoc Convert"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=Structure the chat into columns with header to be input into an excel file. Column headers are : Report Name\tDate\tLevel\tZone\tElement\tAction\tAction Date"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        368
+      ],
+      "id": "c898617a-cd82-4dd7-996f-c5814319289c",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Using  {{ $('Switch2').item.json.message.text }},return ONLY valid JSON that exactly fits the schema below.\nNo extra text. No explanation. No markdown.\nEach int - int : will be a row differentiated by levels, please do not leave out any rows.\nHere is an example of valid JSON output. Follow the same style:\n\n{\n  \"date\": \"18/9/25\",\n  \"levels\": {\n    \"Basement\": {\n      \"zones\": {\n        \"2-1 to 2-4\": {\n          \"status\": \"Completed\",\n          \"details\": []\n        }\n      }\n    }\n  }\n}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Using {{ $json.message.text }} ,return ONLY valid JSON that exactly fits the schema below.\nNo extra text. No explanation. No markdown.\nHere is an example of valid JSON output. Follow the same style:\n\n{\n  \"date\": \"18/9/25\",\n  \"levels\": {\n    \"Basement\": {\n      \"zones\": {\n        \"2-1 to 2-4\": {\n          \"status\": \"Completed\",\n          \"details\": []\n        }\n      }\n    }\n  }\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -256,
+        80
+      ],
+      "id": "64c5fb28-c34b-4184-a9fb-d351dfe0ae43",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        288
+      ],
+      "id": "5e9665a0-6241-49b1-ae6a-84608f86d354",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $json.output.rows.map(row => ({ json: row }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        128
+      ],
+      "id": "5193e624-bd3a-4f6e-a288-9b29276a38ce",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"rows\": [\n{\n\"Date\": \"\",\n\"Level\": \"\",\n\"Zone\": \"\",\n\"Details\": \"\"\n}\n]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        256
+      ],
+      "id": "6c395915-b026-44e5-8e00-744e77121e7e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        128
+      ],
+      "id": "ecfd6bfb-c164-4e00-9860-6eb4ddecfad9",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "site": {
+          "__rl": true,
+          "value": "tiongseng.sharepoint.com,e7c61bd1-0d6c-4212-942d-e70d24a39562,11853f89-1651-4ca9-931b-e58dd1598d2f",
+          "mode": "list",
+          "cachedResultName": "Digital Infrastructure"
+        },
+        "folder": {
+          "__rl": true,
+          "value": "01LV6JUOILH6IPWKUZV5EYGVDWLZH3PGTG",
+          "mode": "list",
+          "cachedResultName": "Daily Report"
+        },
+        "fileName": "={{ (new Date()).toISOString().slice(0, 10) }}.xlsx",
+        "fileContents": "data",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.microsoftSharePoint",
+      "typeVersion": 1,
+      "position": [
+        432,
+        128
+      ],
+      "id": "7a06f497-2717-4038-aa56-90e60787ba5d",
+      "name": "Upload file",
+      "credentials": {
+        "microsoftSharePointOAuth2Api": {
+          "id": "2IVAOjzBs7FobLqU",
+          "name": "Microsoft SharePoint account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "item",
+        "operation": "delete",
+        "site": {
+          "__rl": true,
+          "value": "tiongseng.sharepoint.com,e7c61bd1-0d6c-4212-942d-e70d24a39562,11853f89-1651-4ca9-931b-e58dd1598d2f",
+          "mode": "list",
+          "cachedResultName": "Digital Infrastructure"
+        },
+        "list": {
+          "__rl": true,
+          "value": "6c651987-cdbe-4252-b0f3-ed9a34edb2d7",
+          "mode": "list",
+          "cachedResultName": "Documents"
+        },
+        "item": {
+          "__rl": true,
+          "value": "={{ (new Date()).toISOString().slice(0, 10) }}.xlsx",
+          "mode": "id"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.microsoftSharePoint",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        416
+      ],
+      "id": "25889d3f-3133-47b9-b9bc-50a1696c1bd3",
+      "name": "Delete an item",
+      "credentials": {
+        "microsoftSharePointOAuth2Api": {
+          "id": "2IVAOjzBs7FobLqU",
+          "name": "Microsoft SharePoint account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Today's file is deleted",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        416
+      ],
+      "id": "0d371ff3-8c1b-4c81-bad4-6e5b64a9c34f",
+      "name": "Send a text message2",
+      "webhookId": "2f97eb56-487d-417d-aedc-8d08e8f96e5f",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "C7XaJxzmd9HPrvAM",
+          "name": "TSCtelebot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ \n\"WORKFLOW REQUEST FORM\\n\\n\" +\n\"Name:\\n\" +\n\"Department:\\n\\n\" +\n\"Tender Request Type (choose one):\\n\" +\n\"- Workflow Automation\\n\" +\n\"- Power BI Visualisation\\n\" +\n\"- IT Tools\\n\\n\" +\n\"Usual Time Taken (choose one):\\n\" +\n\"- 30 mins\\n\" +\n\"- 1 hour\\n\" +\n\"- 2 hours\\n\" +\n\"- More than 2 hours\\n\\n\" +\n\"Source Data (choose one):\\n\" +\n\"- SharePoint\\n\" +\n\"- H Drive\\n\" +\n\"- Globe3\\n\" +\n\"- HRIQ\\n\" +\n\"- Others: ________\\n\\n\" +\n\"Deliverables (choose one):\\n\" +\n\"- Excel\\n\" +\n\"- Word Document\\n\" +\n\"- Power BI\\n\" +\n\"- Visuals\\n\\n\" +\n\"Workflow Details:\\n\" +\n\"(Please describe the steps involved in your current workflow / visuals you would like to present.) \\n\\n\\n\" +\n\n\n\"If you would like to receive transcribed meeting minutes, please send in your audio recording for us to process. A Word.docx file will be sent back to you here after recording has been processed. Do note that it will take about 5-10 mins to process\"\n}}\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -848,
+        352
+      ],
+      "id": "7f0e3b68-6a03-44fd-9f9f-9d4333d7cac0",
+      "name": "Send a text message3",
+      "webhookId": "9d432dfc-19a0-42e0-b6d6-3b8ab4453fad",
+      "credentials": {
+        "telegramApi": {
+          "id": "C7XaJxzmd9HPrvAM",
+          "name": "TSCtelebot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "63fc8036-2064-4704-a858-2cd699c6627c",
+              "name": "transcriptText",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "dceba66a-2180-448e-8063-b001a0bebb0f",
+              "name": "toReply",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        -272
+      ],
+      "id": "10fcee3c-96be-4be9-b6d0-9c02722161e3",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.voice }}",
+                    "rightValue": "={{ $json.message.audio }}",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "63194549-c9fb-4f64-93da-9c60d383de6c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Transcribe"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "56ecd30f-5e8d-4dcb-a1cf-3dce85be4c93",
+                    "leftValue": "={{ $json.message.audio }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Transcribe"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1950a298-8753-43e9-a19a-647689185fe6",
+                    "leftValue": "={{ $json.message.document.mime_type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Transcribe"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b5f7a2f3-08a8-4266-8fbc-e5b67892c318",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "Daily Report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Daily Report from Site"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "51eb51e5-ab50-4409-ae1f-0c25df4b38cc",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "Delete today's report",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Delete Site Report"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ffacbc64-0877-4427-a4ad-1e683c0ab01f",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "Workflow Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Workflow Request"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7241a46a-175a-4627-b52b-8dbe9cc1bb4a",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sending Request Requirements"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1008,
+        -48
+      ],
+      "id": "6283e11a-6d28-41e4-85ba-6c82edcc2af4",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "=Instructions:\n--------------\n{{ $json.textPlain }} ,  give me a clean JSON extraction based ONLY on the variables listed below and create an UID based on {{ $json.date }} in ddmmyyyy format and add a number behind starting from 1 , check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolution to digitalize the process\n--------------\nCompletion:\n***AFTER check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n\nthe UID exist in the excel but AI did not increase by 1 for current UID\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\n--------------\n{error}\n--------------\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions: give me a clean JSON extraction based ONLY on the variables listed below and create an UID based on {{ $json.date }} and check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1*** . \n\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolution to digitalize the process"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        704
+      ],
+      "id": "e121cc47-97a8-475d-8446-410f78d2df04",
+      "name": "Auto-fixing Output Parser1"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "readRows",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "data recording tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Requests",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Requests!A1"
+        },
+        "useRange": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Select_a_Range', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcelTool",
+      "typeVersion": 2.2,
+      "position": [
+        -352,
+        784
+      ],
+      "id": "2775dc34-a1ae-44be-8c9d-36c3a0a1acba",
+      "name": "Excelsheets1",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        976
+      ],
+      "id": "41622e63-7ea7-4084-93af-21a5ae3cb95c",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "Data tracker & tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Requests",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Requests!A1"
+        },
+        "dataMode": "autoMap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        656
+      ],
+      "id": "3f42dead-6204-41b1-8381-fde18c314d04",
+      "name": "Append data to sheet2",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=From {{ $json.textPlain }} , give me a clean JSON extraction based ONLY on the variables listed below and also create a UID based on the steps given (Created by you it should be {{ $json.date }} in ddmmyyyy format and add a number behind starting from 1 , check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolutions to digitalize the process",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nRead up on the details of the workflow then give any solution you can think of to digitalize the workflow"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -432,
+        576
+      ],
+      "id": "bef15467-d01f-434e-967f-7f52847417e3",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        752
+      ],
+      "id": "d88a195a-057f-478e-849b-e3cf2202deca",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=Using  {{ $json.textPlain }} , change it into a structured format to be placed into excel sheet with column headers :  Name  Department App to be used  Usual time taken Detailed example of workflow UID Solutions to digitalize the process\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -448,
+        752
+      ],
+      "id": "279c53fb-7900-4483-beea-3b6663778301",
+      "name": "Simple Memory4"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"UID\": \"111220251\",\n  \"Name\": \"John Tan Wei Ming\",\n  \"Department\": \"Human Resource (HR)\",\n  \"Request Type\": \"Daily Report ,Automation\",\n  \"Usual Time Taken\": \"45 minutes daily\",\n  \"Source Data\": \"HRIQ portal attendance data, Excel attachments\",\n\"Deliverables\": \"Formatted Excel report with summary metrics, emailed to managers\",\n  \"Details of workflow\": \"Automated Daily Attendance Summary Processing\\nManual Process:\\n1. HR downloads raw attendance data from the HRIQ portal.\\n2. Opens Excel and cleans data (remove duplicates, format dates, update missing fields).\\n3. Computes workers present, workers on leave, forgot to clock out, regular hours and OT hours.\\n4. Cross-checks against Masterlist.\\n5. Formats final report with summary totals.\\n6. Emails file to Operations Manager and Supervisors.\\n\\nAutomated Process (n8n):\\n1. Trigger daily at 6:00 AM.\\n2. IMAP node checks mailbox for new “Attendance Report”.\\n3. Download and parse Excel into JSON.\\n4. Clean data (normalize dates, fix time formats, remove duplicates).\\n5. Apply logic (forgot to clock out, working flag, leave status, total hours + OT).\\n6. Generate output (Masterdata sheet, pivot summary, formulas, formatting).\\n7. Upload to Google Drive.\\n8. Email final report to HR & Operations.\\n\\nOutcome: Manual time 45 minutes → automated 10 seconds, reduced errors, consistent formatting.\",\n  \"Solution to digitalize the process\":\"Using AI tools to help download the file from HRIQ, format the report using python's pandas library and also create the pivot table from the report itself. Use SMTP to automatically send out the email after the report is created successfully\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        832
+      ],
+      "id": "2fcfb184-e723-4763-8139-fe111315d5b8",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        912
+      ],
+      "id": "aeb6f316-1bed-4c4f-bae3-f1aeba215187",
+      "name": "Google Gemini Chat Model7",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "uvtFaYKiXaQSC0VG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4c82fd48-5477-4909-8d3b-f28361e949b0",
+              "name": "Name",
+              "value": "={{ $json.output.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "1b9cdcfe-8233-4e9e-a935-7b4b25e0ef03",
+              "name": "Department",
+              "value": "={{ $json.output.Department }}",
+              "type": "string"
+            },
+            {
+              "id": "8f85f4e9-dbf8-4321-b54b-b8e69e5f8848",
+              "name": "Request type",
+              "value": "={{ $json.output['Request Type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "f720c2f1-2f7e-4256-9f53-b3f6592a972b",
+              "name": "Usual time taken",
+              "value": "={{ $json.output['Usual Time Taken'] }}",
+              "type": "string"
+            },
+            {
+              "id": "b2e45bd8-6c0d-400e-a886-452dfd5722eb",
+              "name": "Details of the workflow",
+              "value": "={{ $json.output['Details of workflow'] }}",
+              "type": "string"
+            },
+            {
+              "id": "ab3e6aa1-967c-4ba7-af22-1c9bc3aa1870",
+              "name": "UID",
+              "value": "={{ $json.output.UID }}",
+              "type": "string"
+            },
+            {
+              "id": "df27c513-e2a9-4f2f-9116-d0adc7e5a051",
+              "name": "Source Data",
+              "value": "={{ $json.output['Source Data'] }}",
+              "type": "string"
+            },
+            {
+              "id": "d89f25a4-d460-41ce-b0da-605cc4cb171c",
+              "name": "Deliverables",
+              "value": "={{ $json.output.Deliverables }}",
+              "type": "string"
+            },
+            {
+              "id": "8b0b57c2-34d2-4e3d-a210-80b231783e79",
+              "name": "Solution to digitalize the process",
+              "value": "={{ $json.output['Solution to digitalize the process'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        656
+      ],
+      "id": "6c7dfced-a1df-4348-aaff-7e5ba88ce4f5",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "Please check in file and let me know if this response is \"Good\" / \"Bad\" so that i'll be able to improve my future responses ",
+        "responseType": "freeText",
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 45,
+              "resumeUnit": "minutes"
+            }
+          },
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        128
+      ],
+      "id": "6895ab6f-3dbe-4abb-a5f1-8dce917ec8d3",
+      "name": "Send message and wait for response1",
+      "webhookId": "2f97eb56-487d-417d-aedc-8d08e8f96e5f",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "C7XaJxzmd9HPrvAM",
+          "name": "TSCtelebot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.text }}",
+        "tableName": "agent_memory"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -176,
+        288
+      ],
+      "id": "f08ea18e-73af-4072-87f8-84c66e5cf3cb",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "agent_memory",
+          "mode": "list",
+          "cachedResultName": "agent_memory"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "rating": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_input",
+              "displayName": "user_input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "agent_output",
+              "displayName": "agent_output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        752,
+        464
+      ],
+      "id": "9d5d8230-f6eb-439c-94a8-50242871762f",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "agent_memory",
+          "mode": "list",
+          "cachedResultName": "agent_memory"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -256,
+        -80
+      ],
+      "id": "402f8923-1425-4d2e-883f-05c559f7ff45",
+      "name": "Select rows from a table",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "agent_memory",
+          "mode": "list",
+          "cachedResultName": "agent_memory"
+        },
+        "limit": 2,
+        "where": {
+          "values": [
+            {
+              "column": "session_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        944,
+        128
+      ],
+      "id": "6ed41ac2-6029-4d89-b25a-30d0bdc9a0df",
+      "name": "Select rows from a table1",
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "agent_memory",
+          "mode": "list",
+          "cachedResultName": "agent_memory"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "rating": "={{ $('Send message and wait for response1').item.json.data.text }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rating",
+              "displayName": "rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        112
+      ],
+      "id": "28152121-f379-41b6-8804-7deb88a1700f",
+      "name": "Update rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://telegram-host:9000/download",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n\"chat_id\": -1003503722484,\n\"message_id\":{{ $json.result.message_id }}\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -512,
+        -208
+      ],
+      "id": "85398175-b6c1-4067-a7bb-58c5787f53f4",
+      "name": "Download via telethon1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8558119378:AAFLUc71Wrzm-dDonlGjKFIy1t-Zyl_FAVg/copyMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": \"-1003503722484\",\n  \"from_chat_id\": \"{{$json.message.chat.id}}\",\n  \"message_id\": \"{{$json.message.message_id}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -688,
+        -160
+      ],
+      "id": "ef6e4e8a-ede6-4aca-9812-a31c9cf2c40a",
+      "name": "Copy to relay"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01DEOYEZDIY24YWQUZXBBLVHJHZEQ4ZZLO",
+          "mode": "list",
+          "cachedResultName": "Transcripts",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/matthew_ng_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B8BB9C668-9942-42B8-BA9D-27C921CCE56E%7D&file=Transcripts.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/matthew_ng_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B8BB9C668-9942-42B8-BA9D-27C921CCE56E%7D&file=Transcripts.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Sheet1!A1"
+        },
+        "fieldsUi": {
+          "values": [
+            {
+              "column": "Date",
+              "fieldValue": "={{ DateTime.fromMillis($('Telegram Trigger').item.json.message.date * 1000).plus({ days: 1 }).toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "column": "From",
+              "fieldValue": "={{ $('Telegram Trigger').item.json.message.from.username }}"
+            },
+            {
+              "column": "Transcript",
+              "fieldValue": "={{ $json.transcriptText }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        -288
+      ],
+      "id": "13c273c9-28df-4b7a-a85a-682e86cdd708",
+      "name": "Append data to sheet",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "63fc8036-2064-4704-a858-2cd699c6627c",
+              "name": "transcriptText",
+              "value": "={{ $('Meeting minutes').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        -288
+      ],
+      "id": "16442ed6-8eeb-4a8c-9b38-45e705ea2ec9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.transcriptText }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -288
+      ],
+      "id": "ea5f9d9c-e91b-4a0c-9ec4-56d4545a1aae",
+      "name": "Markdown"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Convert to Text File": {
+      "main": [
+        [
+          {
+            "node": "Pandoc Convert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meeting minutes": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Meeting minutes",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model in Google Gemini": {
+      "ai_tool": [
+        [
+          {
+            "node": "Meeting minutes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Meeting minutes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pandoc Convert": {
+      "main": [
+        [
+          {
+            "node": "Send a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete an item": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Convert to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Copy to relay",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Copy to relay",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Copy to relay",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete an item",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excelsheets1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response1": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table1": {
+      "main": [
+        [
+          {
+            "node": "Update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Meeting minutes",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy to relay": {
+      "main": [
+        [
+          {
+            "node": "Download via telethon1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download via telethon1": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        []
+      ]
+    },
+    "Send a document": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dba4b29a-06ec-4ba4-9a18-d0015ab6c8d2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "af58cca4c64342ac5c37670b8200f5d680caf8da4bcb2d038947bc031061efed"
+  },
+  "id": "sP0xCCY7qkWh8kII",
+  "tags": []
+}

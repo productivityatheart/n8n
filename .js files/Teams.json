@@ -1,0 +1,860 @@
+{
+  "name": "Teams",
+  "nodes": [
+    {
+      "parameters": {
+        "event": "newChatMessage",
+        "watchAllChats": true
+      },
+      "type": "n8n-nodes-base.microsoftTeamsTrigger",
+      "typeVersion": 1,
+      "position": [
+        272,
+        224
+      ],
+      "id": "150fd496-49ed-4427-8e01-b98c155c9e0d",
+      "name": "Microsoft Teams Trigger",
+      "webhookId": "08b7def0-e62b-405d-9343-3bf7b8f31c78",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "8DgAAlmKTBW3rAC8",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "prompt": "=Instructions:\n--------------\n {{ $json.body.content }},  give me a clean JSON extraction based ONLY on the variables listed below and create an UID based on {{ $json.createdDateTime }} in ddmmyyyy format and add a number behind starting from 1 , check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolution to digitalize the process\n--------------\nCompletion:\n***AFTER check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\n--------------\n{completion}\n--------------\n\nAbove, the Completion did not satisfy the constraints given in the Instructions.\nError:\n\nthe UID exist in the excel but AI did not increase by 1 for current UID\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\n--------------\n{error}\n--------------\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nPlease try again. Please only respond with an answer that satisfies the constraints laid out in the Instructions: give me a clean JSON extraction based ONLY on the variables listed below and create an UID based on {{ $json.createdDateTime }} and check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1*** . \n\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolution to digitalize the process"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        400
+      ],
+      "id": "84fb2171-9445-4b92-b8a9-7fb34f6e9319",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "readRows",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "data recording tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Requests",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=data%20recording%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Requests!A1"
+        },
+        "useRange": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Select_a_Range', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcelTool",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        592
+      ],
+      "id": "b67c25f9-da3c-49b6-aa45-82cd7ffbbb8b",
+      "name": "Excelsheets",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        688
+      ],
+      "id": "b18a52a9-48cf-4762-92e2-d06ca4e827ff",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "u13WvebSLIsqPT7I",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "Data tracker & tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "",
+          "mode": "id"
+        },
+        "dataMode": "autoMap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        80
+      ],
+      "id": "a10528a0-a2f7-48ce-ad35-72a9b5c3771e",
+      "name": "Append data to sheet",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=From  {{ $json.body.content }}, give me a clean JSON extraction based ONLY on the variables listed below and also create a UID based on the steps given (Created by you it should be {{ $json.createdDateTime }} in ddmmyyyy format and add a number behind starting from 1 , check using excel tool if current UID exit in excel tool , if yes +1 to current UID. Read up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\nUID\nName \nDepartment\nRequest Type\nTime taken to complete task \nSource Data\nDeliverables\nDetails of the workflow \nSolutions to digitalize the process",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n\nRead up on the details of the workflow then give any solution you can think of to digitalize the workflow\n\nCheck back against the postgres memory data so that the output can be more accurate and also this are all construction site details."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1024,
+        224
+      ],
+      "id": "8cdba387-fa50-4129-817b-e86cc9a1aa77",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        960,
+        464
+      ],
+      "id": "b912e15f-c3ac-462c-aab8-bf742840b733",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "u13WvebSLIsqPT7I",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=Using the output , change it into a structured format to be placed into excel sheet with column headers :  Name  Department App to be used  Usual time taken Detailed example of workflow UID Solutions to digitalize the process\n\n***ALWAYS check column A in \"Excelsheets\" for current UID , if current UID exist, current UID +1***\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1088,
+        480
+      ],
+      "id": "c8543503-bba8-45b4-9a98-0987bd36fbef",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"UID\": \"111220251\",\n  \"Name\": \"John Tan Wei Ming\",\n  \"Department\": \"Human Resource (HR)\",\n  \"Request Type\": \"Daily Report ,Automation\",\n  \"Usual Time Taken\": \"45 minutes daily\",\n  \"Source Data\": \"HRIQ portal attendance data, Excel attachments\",\n\"Deliverables\": \"Formatted Excel report with summary metrics, emailed to managers\",\n  \"Details of workflow\": \"Automated Daily Attendance Summary Processing\\nManual Process:\\n1. HR downloads raw attendance data from the HRIQ portal.\\n2. Opens Excel and cleans data (remove duplicates, format dates, update missing fields).\\n3. Computes workers present, workers on leave, forgot to clock out, regular hours and OT hours.\\n4. Cross-checks against Masterlist.\\n5. Formats final report with summary totals.\\n6. Emails file to Operations Manager and Supervisors.\\n\\nAutomated Process (n8n):\\n1. Trigger daily at 6:00 AM.\\n2. IMAP node checks mailbox for new “Attendance Report”.\\n3. Download and parse Excel into JSON.\\n4. Clean data (normalize dates, fix time formats, remove duplicates).\\n5. Apply logic (forgot to clock out, working flag, leave status, total hours + OT).\\n6. Generate output (Masterdata sheet, pivot summary, formulas, formatting).\\n7. Upload to Google Drive.\\n8. Email final report to HR & Operations.\\n\\nOutcome: Manual time 45 minutes → automated 10 seconds, reduced errors, consistent formatting.\",\n  \"Solution to digitalize the process\":\"Using AI tools to help download the file from HRIQ, format the report using python's pandas library and also create the pivot table from the report itself. Use SMTP to automatically send out the email after the report is created successfully\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1392,
+        544
+      ],
+      "id": "7e2ee961-6ab2-49b4-b090-3f1d7113968b",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        640
+      ],
+      "id": "1bdaba9d-0de6-41d1-a676-3e2ec9621221",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "u13WvebSLIsqPT7I",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4c82fd48-5477-4909-8d3b-f28361e949b0",
+              "name": "Name",
+              "value": "={{ $json.output.Name }}",
+              "type": "string"
+            },
+            {
+              "id": "1b9cdcfe-8233-4e9e-a935-7b4b25e0ef03",
+              "name": "Department",
+              "value": "={{ $json.output.Department }}",
+              "type": "string"
+            },
+            {
+              "id": "8f85f4e9-dbf8-4321-b54b-b8e69e5f8848",
+              "name": "Request type",
+              "value": "={{ $json.output['Request Type'] }}",
+              "type": "string"
+            },
+            {
+              "id": "f720c2f1-2f7e-4256-9f53-b3f6592a972b",
+              "name": "Usual time taken",
+              "value": "={{ $json.output['Usual Time Taken'] }}",
+              "type": "string"
+            },
+            {
+              "id": "b2e45bd8-6c0d-400e-a886-452dfd5722eb",
+              "name": "Details of the workflow",
+              "value": "={{ $json.output['Details of workflow'] }}",
+              "type": "string"
+            },
+            {
+              "id": "ab3e6aa1-967c-4ba7-af22-1c9bc3aa1870",
+              "name": "UID",
+              "value": "={{ $json.output.UID }}",
+              "type": "string"
+            },
+            {
+              "id": "df27c513-e2a9-4f2f-9116-d0adc7e5a051",
+              "name": "Source Data",
+              "value": "={{ $json.output['Source Data'] }}",
+              "type": "string"
+            },
+            {
+              "id": "d89f25a4-d460-41ce-b0da-605cc4cb171c",
+              "name": "Deliverables",
+              "value": "={{ $json.output.Deliverables }}",
+              "type": "string"
+            },
+            {
+              "id": "8b0b57c2-34d2-4e3d-a210-80b231783e79",
+              "name": "Solution to digitalize the process",
+              "value": "={{ $json.output['Solution to digitalize the process'] }}",
+              "type": "string"
+            },
+            {
+              "id": "5d176944-bea3-447b-a276-7b6b4222e81f",
+              "name": "chat ID ",
+              "value": "={{ $('Edit Fields').item.json['chat ID'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1312,
+        224
+      ],
+      "id": "f72a2e32-fa1b-4538-8ef9-ca1cce545179",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.content }}",
+                    "rightValue": "Workflow Request",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "c7eecbd5-0ac2-450e-be9a-d7d3997a2a48"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        832,
+        224
+      ],
+      "id": "39ccc1bd-57c4-4c4d-ae7b-7b67f66a1e3f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0283b4f6-6ebf-41dd-b750-4022f6753a04",
+              "leftValue": "={{ $execution.mode }}",
+              "rightValue": "Workflow Request ",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "ae5e97e3-4811-409f-833e-97adbca4f3e3",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2480,
+        432
+      ],
+      "id": "7aa36df2-b4e6-4d43-a033-06a27b36ba62",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "chatMessage",
+        "operation": "get",
+        "chatId": {
+          "__rl": true,
+          "value": "={{ $json['chat ID'] }}",
+          "mode": "id"
+        },
+        "messageId": "={{ $json['Message ID'] }}"
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        640,
+        224
+      ],
+      "id": "04fea32a-804d-4466-81c1-e5ae2118556a",
+      "name": "Get chat message",
+      "webhookId": "0754e4cb-cd1e-4d41-9e72-09d551f33156",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "8DgAAlmKTBW3rAC8",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f26e9df-21fc-4c2d-9cc5-30d9adaf69ca",
+              "name": "chat ID",
+              "value": "={{ $json['@odata.id'].match(/chats\\('(.+?)'\\)/)[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "1a7acf78-f0f0-40e4-8cf7-38eba20d6b7a",
+              "name": "Message ID",
+              "value": "={{ $json['@odata.id'].match(/messages\\('(.+?)'\\)/)[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        224
+      ],
+      "id": "b78794df-c12d-4539-8248-1f3d9931fc80",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "chatMessage",
+        "chatId": {
+          "__rl": true,
+          "value": "={{ $json['chat ID '] }}",
+          "mode": "id"
+        },
+        "message": "Updated into data",
+        "options": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        224
+      ],
+      "id": "ffcad8b5-0391-4cc2-9e35-5ce005042eb8",
+      "name": "Create chat message",
+      "webhookId": "5c08be36-d4be-434e-80f1-4dbf8ef21c60",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "8DgAAlmKTBW3rAC8",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Get chat message').item.json.body.content }}",
+                    "rightValue": "SAA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "cd52cdef-95b1-45ea-858e-4a7783d855fb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SAA"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5c61a7e6-1441-43e1-9ce2-4c2d645f60bf",
+                    "leftValue": "={{ $('Get chat message').item.json.body.content }}",
+                    "rightValue": "SDE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SDE"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        2464,
+        304
+      ],
+      "id": "bbdcb70f-dddf-478c-b873-ab9d869ebf35",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "Data tracker & tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Requests",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1&activeCell=Requests!A1"
+        },
+        "dataMode": "autoMap",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        224
+      ],
+      "id": "36dfd265-2992-45b5-a239-9d90a6a1bf00",
+      "name": "Append data to sheet1",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addWorksheet",
+        "workbook": {
+          "__rl": true,
+          "value": "01N52GPYQYJGQQXMC2LNGLOHPR5KN7SK33",
+          "mode": "list",
+          "cachedResultName": "Data tracker & tester",
+          "cachedResultUrl": "https://tiongseng-my.sharepoint.com/personal/productivity_at_heart_tiongseng_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7B0BA14918-5AB0-4C5B-B71D-F1EA9BF92B7B%7D&file=Data%20tracker%20%26%20tester.xlsx&action=default&mobileredirect=true&DefaultItemOpen=1"
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        2128,
+        16
+      ],
+      "id": "2069ba43-7b8e-4ade-9a88-61d5837122ad",
+      "name": "Add a sheet to a workbook",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "CSpPSrCWHvn6gg1L",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "agent_memory",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2496,
+        192
+      ],
+      "id": "df299128-9acd-449d-a3c5-3f6f45c77511",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "agent_memory",
+          "mode": "list",
+          "cachedResultName": "agent_memory"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_input",
+              "displayName": "user_input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "agent_output",
+              "displayName": "agent_output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "replaceEmptyStrings": true
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2480,
+        -16
+      ],
+      "id": "43576903-5425-4053-9d71-32a617a97637",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "CyQZqu2XykAcpOjs",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excelsheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft Teams Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get chat message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get chat message": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        []
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        []
+      ]
+    },
+    "Create chat message": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append data to sheet1": {
+      "main": [
+        [
+          {
+            "node": "Create chat message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "308f7536-42d0-4580-8a5b-5902a017cae1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "af58cca4c64342ac5c37670b8200f5d680caf8da4bcb2d038947bc031061efed"
+  },
+  "id": "Gxn9etuSBhKwxFi7",
+  "tags": []
+}

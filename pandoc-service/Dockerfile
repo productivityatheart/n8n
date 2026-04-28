@@ -1,22 +1,9 @@
-FROM node:18-alpine
+# Dockerfile — build n8n with pandoc installed
+FROM n8nio/n8n:latest
 
-# Install pandoc
-RUN apk update && apk add --no-cache pandoc
-
-# Create app directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install express multer
-
-# Copy server file
-COPY server.js .
-
-# Expose port
-EXPOSE 3000
-
-# Start server
-CMD ["node", "server.js"]
+# Install pandoc (Debian/Ubuntu base)
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends pandoc \
+    && rm -rf /var/lib/apt/lists/*
+USER node
